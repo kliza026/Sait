@@ -81,7 +81,7 @@ const ADMIN_PASS='Missmira_09';
 let venues=[],currentTab='pending';
 function login(){if(document.getElementById('passInput').value.trim()!==ADMIN_PASS)return alert('Неверный пароль!');document.getElementById('loginScreen').style.display='none';document.getElementById('adminPanel').style.display='block';refreshData();}
 async function refreshData(){document.getElementById('listContainer').innerHTML='<div style="text-align:center;padding:40px;color:#6b7280;">Загрузка...</div>';try{const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}}),d=await r.json();venues=(d.record&&Array.isArray(d.record.venues))?d.record.venues:[];renderList();}catch(e){alert('Ошибка загрузки: '+e.message);}}
-async function syncBin(){const r=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({venues})});if(!r.ok)throw new Error('Ошибка сервера');}
+async function syncBin(){const r=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({venues})});if(!r.ok){const t=await r.text();throw new Error(r.status+' '+t);}}
 function switchTab(t){currentTab=t;document.getElementById('tabPending').classList.toggle('active',t==='pending');document.getElementById('tabApproved').classList.toggle('active',t==='approved');closeEditor();renderList();}
 function renderList(){
 const p=venues.filter(v=>v&&v.status==='pending'),a=venues.filter(v=>v&&v.status==='approved');
