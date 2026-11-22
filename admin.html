@@ -99,7 +99,7 @@ document.getElementById('v_popular').checked=!!v.is_popular;document.getElementB
 document.getElementById('editorTitle').innerText='Редактирование заведения';document.getElementById('editorBox').style.display='block';window.scrollTo(0,0);
 }
 function closeEditor(){document.getElementById('editorBox').style.display='none';}
-function compressImage(f){return new Promise(res=>{const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas'),M=650;let w=i.width,h=i.height;if(w>M){h=Math.round(h*(M/w));w=M;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',0.65));};i.src=e.target.result;};r.readAsDataURL(f);});}
+function compressImage(f){return new Promise(res=>{const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas'),M=420;let w=i.width,h=i.height;if(w>M){h=Math.round(h*(M/w));w=M;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',0.55));};i.src=e.target.result;};r.readAsDataURL(f);});}
 async function saveVenue(e){
 e.preventDefault();const b=document.getElementById('saveBtn');b.disabled=true;b.innerText='Сохранение...';
 try{
