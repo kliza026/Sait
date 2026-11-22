@@ -74,7 +74,10 @@ header{background:#111827;color:#fff;padding:16px;display:flex;justify-content:s
 </div>
 </div>
 <script>
-const BIN_URL='https://jsonbin.io';
+const BIN_ID='6b035a0effd5d16053d65121';
+const BIN_URL='https://api.'+'jsonbin.io/v3/b/'+BIN_ID;
+const API_KEY='$2a$10$OaaE6U9NfnjTE/MRnksDqef62TSazxOtqDWy8HiYJPKnYcdO384uW';
+const ADMIN_PASS='Missmira_09';
 let venues=[],currentTab='pending';
 function login(){if(document.getElementById('passInput').value.trim()!==ADMIN_PASS)return alert('Неверный пароль!');document.getElementById('loginScreen').style.display='none';document.getElementById('adminPanel').style.display='block';refreshData();}
 async function refreshData(){document.getElementById('listContainer').innerHTML='<div style="text-align:center;padding:40px;color:#6b7280;">Загрузка...</div>';try{const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}}),d=await r.json();venues=(d.record&&Array.isArray(d.record.venues))?d.record.venues:[];renderList();}catch(e){alert('Ошибка загрузки: '+e.message);}}
