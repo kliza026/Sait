@@ -76,7 +76,9 @@ h1{font-size:20px;font-weight:800;color:#111827}
 </div>
 </div>
 <script>
-const BIN_URL='https://jsonbin.io';
+const BIN_ID='6b035a0effd5d16053d65121';
+const BIN_URL='https://api.'+'jsonbin.io/v3/b/'+BIN_ID;
+const API_KEY='$2a$10$OaaE6U9NfnjTE/MRnksDqef62TSazxOtqDWy8HiYJPKnYcdO384uW';
 let allVenues=[],currentFilter='all';
 async function loadVenues(){try{const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}}),d=await r.json(),l=(d.record&&Array.isArray(d.record.venues))?d.record.venues:[];allVenues=l.filter(v=>v&&v.status==='approved');render();}catch(e){document.getElementById('mainContainer').innerHTML='<div class="empty-state">Каталог пока пуст. Заведения скоро появятся!</div>';}}
 function setFilter(f,b){currentFilter=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');render();}
