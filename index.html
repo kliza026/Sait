@@ -76,9 +76,9 @@ h1{font-size:20px;font-weight:800;color:#111827}
 </div>
 </div>
 <script>
-const DB_URL='https://firebaseio.com';
+const BIN_URL='https://jsonbin.io';
 let allVenues=[],currentFilter='all';
-async function loadVenues(){try{const r=await fetch(`${DB_URL}/venues.json`),d=await r.json(),l=d?Object.values(d):[];allVenues=l.filter(v=>v&&v.status==='approved');render();}catch(e){document.getElementById('mainContainer').innerHTML='<div class="empty-state">Каталог пока пуст. Заведения скоро появятся!</div>';}}
+async function loadVenues(){try{const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}}),d=await r.json(),l=(d.record&&Array.isArray(d.record.venues))?d.record.venues:[];allVenues=l.filter(v=>v&&v.status==='approved');render();}catch(e){document.getElementById('mainContainer').innerHTML='<div class="empty-state">Каталог пока пуст. Заведения скоро появятся!</div>';}}
 function setFilter(f,b){currentFilter=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');render();}
 function createCard(v){
 const img=v.photo?`<img src="${v.photo}" class="card-img" alt="${v.name}">`:'';
@@ -107,11 +107,15 @@ function closeModal(){document.getElementById('reqModal').classList.remove('open
 async function submitVenue(e){
 e.preventDefault();const btn=document.getElementById('reqSubmitBtn');btn.disabled=true;btn.innerText='Отправка...';
 try{
+const r0=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}}),d0=await r0.json();
+const list=(d0.record&&Array.isArray(d0.record.venues))?d0.record.venues:[];
 const fd=new FormData(e.target),id=String(Date.now());
-const obj={id,status:'pending',photo:'',name:(fd.get('name')||'').trim(),category:fd.get('category')||'Кафе',address:(fd.get('address')||'').trim(),phone:(fd.get('phone')||'').trim(),whatsapp:(fd.get('whatsapp')||'').trim(),max:(fd.get('max')||'').trim(),description:(fd.get('description')||'').trim(),is_breakfast:fd.get('is_breakfast')==='1',is_delivery:fd.get('is_delivery')==='1',is_halal:fd.get('is_halal')==='1',is_popular:false,is_recommended:false};
-const res=await fetch(`${DB_URL}/venues/${id}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+list.unshift({id,status:'pending',photo:'',name:(fd.get('name')||'').trim(),category:fd.get('category')||'Кафе',address:(fd.get('address')||'').trim(),phone:(fd.get('phone')||'').trim(),whatsapp:(fd.get('whatsapp')||'').trim(),max:(fd.get('max')||'').trim(),description:(fd.get('description')||'').trim(),is_breakfast:fd.get('is_breakfast')==='1',is_delivery:fd.get('is_delivery')==='1',is_halal:fd.get('is_halal')==='1',is_popular:false,is_recommended:false});
+const res=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({venues:list})});
 if(res.ok){alert('Спасибо! Ваша заявка отправлена администратору. После проверки заведение появится в каталоге.');e.target.reset();closeModal();}else alert('Ошибка при отправке заявки.');
 }catch(err){alert('Ошибка сети: '+err.message);}finally{btn.disabled=false;btn.innerText='Отправить на модерацию';}
 }
 loadVenues();
-</script></body></html> 
+</script>
+</body>
+</html>
