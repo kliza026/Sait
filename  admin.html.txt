@@ -1,0 +1,276 @@
+Файл 3: admin.html) — это твой закрытый пульт управления.
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление — Еда Кисловодск</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #f3f4f6; color: #111827; padding-bottom: 50px; }
+        .login-box { max-width: 360px; margin: 80px auto; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; }
+        .login-box input { width: 100%; padding: 12px; margin: 16px 0; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+        .btn-primary { background: #111827; color: #fff; }
+        .btn-green { background: #10b981; color: #fff; }
+        .btn-red { background: #ef4444; color: #fff; }
+        .btn-blue { background: #3b82f6; color: #fff; }
+        
+        header { background: #111827; color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 700px; margin: 16px auto; padding: 0 16px; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .tab { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 700; background: #e5e7eb; cursor: pointer; }
+        .tab.active { background: #111827; color: #fff; }
+        
+        .card { background: #fff; padding: 16px; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .card-title { font-size: 17px; font-weight: 700; }
+        .card-meta { font-size: 13px; color: #4b5563; margin-bottom: 10px; line-height: 1.4; }
+        .card-btns { display: flex; gap: 8px; }
+        .card-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+        
+        .form-box { background: #fff; padding: 18px; border-radius: 16px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 15px; }
+        .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; background: #f9fafb; padding: 12px; border-radius: 10px; }
+        .checks label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+        .paid-box { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 10px; margin-bottom: 14px; }
+        .paid-box label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-box">
+    <h2>Вход для администратора</h2>
+    <input type="password" id="passInput" placeholder="Введите пароль">
+    <button class="btn btn-primary" onclick="login()">Войти</button>
+</div>
+
+<div id="adminPanel" style="display:none;">
+    <header>
+        <h3>Админка: Еда Кисловодск</h3>
+        <button onclick="openEditor()" style="background:#10b981; color:#fff; border:none; padding:8px 12px; border-radius:8px; font-weight:700;">+ Добавить</button>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" id="tabPending" onclick="switchTab('pending')">Новые заявки (0)</button>
+            <button class="tab" id="tabApproved" onclick="switchTab('approved')">На сайте (0)</button>
+        </div>
+
+        <div id="editorBox" class="form-box" style="display:none;">
+            <h3 id="editorTitle" style="margin-bottom:14px;">Добавить заведение</h3>
+            <form id="venueForm" onsubmit="saveVenue(event)">
+                <input type="hidden" name="id" id="v_id">
+                <input type="hidden" name="existing_photo" id="v_existing_photo">
+                <input type="hidden" name="status" id="v_status" value="approved">
+
+                <div class="form-group">
+                    <label>Фотография заведения (из галереи)</label>
+                    <input type="file" name="photo" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Название *</label>
+                    <input type="text" name="name" id="v_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Категория</label>
+                    <select name="category" id="v_category">
+                        <option value="Кафе">Кафе</option>
+                        <option value="Ресторан">Ресторан</option>
+                        <option value="Кофейня">Кофейня</option>
+                        <option value="Столовая / Фастфуд">Столовая / Фастфуд</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Адрес *</label>
+                    <input type="text" name="address" id="v_address" required>
+                </div>
+                <div class="form-group">
+                    <label>Телефон заведения</label>
+                    <input type="text" name="phone" id="v_phone">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp</label>
+                    <input type="text" name="whatsapp" id="v_whatsapp">
+                </div>
+                <div class="form-group">
+                    <label>Max мессенджер</label>
+                    <input type="text" name="max" id="v_max">
+                </div>
+                <div class="form-group">
+                    <label>Описание</label>
+                    <textarea name="description" id="v_description" rows="3"></textarea>
+                </div>
+
+                <div class="checks">
+                    <label><input type="checkbox" id="v_breakfast"> 🍳 Завтраки</label>
+                    <label><input type="checkbox" id="v_delivery"> 🛵 Доставка</label>
+                    <label><input type="checkbox" id="v_halal"> ☪️ Халяль</label>
+                </div>
+
+                <div class="paid-box">
+                    <div style="font-size:12px; color:#b45309; margin-bottom:8px;">Платные опции продвижения (видны только вам):</div>
+                    <label><input type="checkbox" id="v_popular"> 🔥 В раздел «Популярные» (Топ)</label>
+                    <label><input type="checkbox" id="v_recommended"> ⭐ В раздел «Рекомендуем»</label>
+                </div>
+
+                <div style="display:flex; gap:8px;">
+                    <button type="submit" class="btn btn-green">Сохранить и опубликовать</button>
+                    <button type="button" class="btn" style="background:#e5e7eb;" onclick="closeEditor()">Отмена</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="listContainer"></div>
+    </div>
+</div>
+
+<script>
+let password = '';
+let venues = [];
+let currentTab = 'pending';
+
+async function login() {
+    password = document.getElementById('passInput').value;
+    const fd = new FormData();
+    fd.append('action', 'get_admin');
+    fd.append('password', password);
+    const res = await fetch('api.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) {
+        alert(data.error);
+    } else {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        venues = data.venues || [];
+        renderList();
+    }
+}
+
+async function refreshData() {
+    const fd = new FormData();
+    fd.append('action', 'get_admin');
+    fd.append('password', password);
+    const res = await fetch('api.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    venues = data.venues || [];
+    renderList();
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabPending').classList.toggle('active', tab === 'pending');
+    document.getElementById('tabApproved').classList.toggle('active', tab === 'approved');
+    closeEditor();
+    renderList();
+}
+
+function renderList() {
+    const pending = venues.filter(v => v.status === 'pending');
+    const approved = venues.filter(v => v.status === 'approved');
+    document.getElementById('tabPending').innerText = `Новые заявки (${pending.length})`;
+    document.getElementById('tabApproved').innerText = `На сайте (${approved.length})`;
+
+    const list = currentTab === 'pending' ? pending : approved;
+    const container = document.getElementById('listContainer');
+
+    if (list.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#6b7280;">Здесь пока пусто</div>';
+        return;
+    }
+
+    container.innerHTML = list.map(v => `
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">${v.name}</div>
+                <span style="font-size:12px; background:#f3f4f6; padding:3px 8px; border-radius:6px;">${v.category}</span>
+            </div>
+            <div class="card-meta">
+                📍 ${v.address}<br>
+                📞 ${v.phone || 'Нет'} | WA: ${v.whatsapp || 'Нет'} | Max: ${v.max || 'Нет'}<br>
+                ${v.is_popular ? '🔥 <b>Популярное</b> ' : ''}
+                ${v.is_recommended ? '⭐ <b>Рекомендуем</b> ' : ''}
+                ${v.is_breakfast ? '🍳 Завтраки ' : ''}
+                ${v.is_delivery ? '🛵 Доставка ' : ''}
+                ${v.is_halal ? '☪️ Халяль ' : ''}
+            </div>
+            <div class="card-btns">
+                <button class="btn-blue" style="color:#fff;" onclick="editVenue('${v.id}')">${currentTab === 'pending' ? 'Проверить и опубликовать' : 'Редактировать / Фото'}</button>
+                <button class="btn-red" style="color:#fff;" onclick="deleteVenue('${v.id}')">Удалить</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openEditor() {
+    document.getElementById('venueForm').reset();
+    document.getElementById('v_id').value = '';
+    document.getElementById('v_existing_photo').value = '';
+    document.getElementById('v_status').value = 'approved';
+    document.getElementById('editorTitle').innerText = 'Добавить заведение';
+    document.getElementById('editorBox').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function editVenue(id) {
+    const v = venues.find(item => item.id === id);
+    if (!v) return;
+    document.getElementById('v_id').value = v.id;
+    document.getElementById('v_existing_photo').value = v.photo || '';
+    document.getElementById('v_status').value = 'approved';
+    document.getElementById('v_name').value = v.name;
+    document.getElementById('v_category').value = v.category;
+    document.getElementById('v_address').value = v.address;
+    document.getElementById('v_phone').value = v.phone;
+    document.getElementById('v_whatsapp').value = v.whatsapp;
+    document.getElementById('v_max').value = v.max;
+    document.getElementById('v_description').value = v.description;
+    document.getElementById('v_breakfast').checked = v.is_breakfast;
+    document.getElementById('v_delivery').checked = v.is_delivery;
+    document.getElementById('v_halal').checked = v.is_halal;
+    document.getElementById('v_popular').checked = v.is_popular;
+    document.getElementById('v_recommended').checked = v.is_recommended;
+    document.getElementById('editorTitle').innerText = 'Редактирование заведения';
+    document.getElementById('editorBox').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function closeEditor() {
+    document.getElementById('editorBox').style.display = 'none';
+}
+
+async function saveVenue(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    fd.append('action', 'save_venue');
+    fd.append('password', password);
+    fd.append('is_breakfast', document.getElementById('v_breakfast').checked ? '1' : '0');
+    fd.append('is_delivery', document.getElementById('v_delivery').checked ? '1' : '0');
+    fd.append('is_halal', document.getElementById('v_halal').checked ? '1' : '0');
+    fd.append('is_popular', document.getElementById('v_popular').checked ? '1' : '0');
+    fd.append('is_recommended', document.getElementById('v_recommended').checked ? '1' : '0');
+
+    const res = await fetch('api.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+        closeEditor();
+        refreshData();
+    }
+}
+
+async function deleteVenue(id) {
+    if (!confirm('Точно удалить это заведение?')) return;
+    const fd = new FormData();
+    fd.append('action', 'delete_venue');
+    fd.append('password', password);
+    fd.append('id', id);
+    await fetch('api.php', { method: 'POST', body: fd });
+    refreshData();
+}
+</script>
+</body>
+</html>

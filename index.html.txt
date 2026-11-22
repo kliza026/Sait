@@ -1,0 +1,231 @@
+Файл 2: index.html (витрина для гостей)
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Еда Кисловодск — Кафе, рестораны, завтраки и доставка</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #f5f6f8; color: #1f2937; padding-bottom: 40px; }
+        header { background: #ffffff; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto; }
+        h1 { font-size: 20px; font-weight: 800; color: #111827; }
+        .add-btn { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .tabs { display: flex; gap: 8px; overflow-x: auto; max-width: 800px; margin: 14px auto 0; padding-bottom: 4px; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { background: #eef2f6; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; color: #4b5563; white-space: nowrap; cursor: pointer; }
+        .tab.active { background: #111827; color: #ffffff; }
+        .container { max-width: 800px; margin: 16px auto; padding: 0 16px; }
+        .section-title { font-size: 18px; font-weight: 700; margin: 20px 0 12px; display: flex; align-items: center; gap: 6px; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+        .card-img { width: 100%; height: 190px; object-fit: cover; background: #e5e7eb; display: block; }
+        .card-body { padding: 16px; }
+        .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+        .badge-pop { background: #fef3c7; color: #d97706; }
+        .badge-rec { background: #dbeafe; color: #2563eb; }
+        .badge-tag { background: #f3f4f6; color: #374151; }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .card-addr { font-size: 13px; color: #6b7280; margin-bottom: 10px; }
+        .card-desc { font-size: 14px; color: #374151; line-height: 1.4; margin-bottom: 14px; }
+        .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn-act { flex: 1; min-width: 100px; text-align: center; text-decoration: none; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+        .btn-call { background: #111827; color: #fff; }
+        .btn-wa { background: #25d366; color: #fff; }
+        .btn-max { background: #3b82f6; color: #fff; }
+        .btn-map { background: #f3f4f6; color: #111827; }
+        .empty-state { text-align: center; padding: 50px 20px; color: #6b7280; background: #fff; border-radius: 16px; }
+        
+        /* Модальное окно заявки */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+        .modal.open { display: flex; }
+        .modal-content { background: #fff; width: 100%; max-width: 450px; border-radius: 16px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .submit-btn { width: 100%; background: #10b981; color: #fff; border: none; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <h1>Еда Кисловодск</h1>
+        <button class="add-btn" onclick="openModal()">+ Добавить кафе</button>
+    </div>
+    <div class="tabs">
+        <button class="tab active" onclick="setFilter('all', this)">Все заведения</button>
+        <button class="tab" onclick="setFilter('breakfast', this)">🍳 Завтраки</button>
+        <button class="tab" onclick="setFilter('delivery', this)">🛵 Доставка</button>
+        <button class="tab" onclick="setFilter('halal', this)">☪️ Халяль</button>
+    </div>
+</header>
+
+<div class="container" id="mainContainer">
+    <div class="empty-state">Загрузка каталога...</div>
+</div>
+
+<!-- Форма заявки для владельцев -->
+<div class="modal" id="reqModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Добавить заведение</h3>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="reqForm" onsubmit="submitVenue(event)">
+            <div class="form-group">
+                <label>Название заведения *</label>
+                <input type="text" name="name" required placeholder="Например: Кофейня У Парка">
+            </div>
+            <div class="form-group">
+                <label>Тип заведения</label>
+                <select name="category">
+                    <option value="Кафе">Кафе</option>
+                    <option value="Ресторан">Ресторан</option>
+                    <option value="Кофейня">Кофейня</option>
+                    <option value="Столовая / Фастфуд">Столовая / Фастфуд</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Адрес в Кисловодске *</label>
+                <input type="text" name="address" required placeholder="Курортный бульвар, 10">
+            </div>
+            <div class="form-group">
+                <label>Телефон для гостей *</label>
+                <input type="tel" name="phone" required placeholder="+7 900 000-00-00">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp (номер или ссылка)</label>
+                <input type="text" name="whatsapp" placeholder="79000000000">
+            </div>
+            <div class="form-group">
+                <label>Мессенджер Max (ссылка или номер)</label>
+                <input type="text" name="max" placeholder="Ссылка или номер в Max">
+            </div>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="is_breakfast" value="1"> Есть завтраки</label>
+                <label><input type="checkbox" name="is_delivery" value="1"> Есть доставка на дом</label>
+                <label><input type="checkbox" name="is_halal" value="1"> Халяль меню</label>
+            </div>
+            <div class="form-group">
+                <label>Краткое описание и популярные блюда</label>
+                <textarea name="description" rows="3" placeholder="Свежая выпечка, авторский кофе, средний чек 600 ₽"></textarea>
+            </div>
+            <button type="submit" class="submit-btn">Отправить на модерацию</button>
+        </form>
+    </div>
+</div>
+
+<script>
+let allVenues = [];
+let currentFilter = 'all';
+
+async function loadVenues() {
+    try {
+        const res = await fetch('api.php?action=get_public');
+        const data = await res.json();
+        allVenues = data.venues || [];
+        render();
+    } catch (e) {
+        document.getElementById('mainContainer').innerHTML = '<div class="empty-state">Каталог пока пуст. Заведения скоро появятся!</div>';
+    }
+}
+
+function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+}
+
+function createCard(v) {
+    const imgHtml = v.photo ? `<img src="${v.photo}" class="card-img" alt="${v.name}">` : '';
+    let badges = `<span class="badge badge-tag">${v.category}</span>`;
+    if (v.is_popular) badges += `<span class="badge badge-pop">🔥 Популярное</span>`;
+    if (v.is_recommended) badges += `<span class="badge badge-rec">⭐ Рекомендуем</span>`;
+    if (v.is_breakfast) badges += `<span class="badge badge-tag">🍳 Завтраки</span>`;
+    if (v.is_delivery) badges += `<span class="badge badge-tag">🛵 Доставка</span>`;
+    if (v.is_halal) badges += `<span class="badge badge-tag">☪️ Халяль</span>`;
+
+    const cleanPhone = v.phone.replace(/[^0-9+]/g, '');
+    const waLink = v.whatsapp ? (v.whatsapp.startsWith('http') ? v.whatsapp : `https://wa.me{v.whatsapp.replace(/[^0-9]/g, '')}`) : '';
+    const maxLink = v.max ? (v.max.startsWith('http') ? v.max : `https://max.ru{v.max.replace(/[^0-9a-zA-Z_]/g, '')}`) : '';
+    const mapLink = `https://yandex.ru{encodeURIComponent('Кисловодск ' + v.address + ' ' + v.name)}`;
+
+    return `
+        <div class="card">
+            ${imgHtml}
+            <div class="card-body">
+                <div class="badges">${badges}</div>
+                <div class="card-title">${v.name}</div>
+                <div class="card-addr">📍 ${v.address}</div>
+                ${v.description ? `<div class="card-desc">${v.description}</div>` : ''}
+                <div class="actions">
+                    ${cleanPhone ? `<a href="tel:${cleanPhone}" class="btn-act btn-call">📞 Позвонить</a>` : ''}
+                    ${waLink ? `<a href="${waLink}" target="_blank" class="btn-act btn-wa">WhatsApp</a>` : ''}
+                    ${maxLink ? `<a href="${maxLink}" target="_blank" class="btn-act btn-max">Max</a>` : ''}
+                    <a href="${mapLink}" target="_blank" class="btn-act btn-map">🗺 На карте</a>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function render() {
+    const container = document.getElementById('mainContainer');
+    let filtered = allVenues.filter(v => {
+        if (currentFilter === 'breakfast') return v.is_breakfast;
+        if (currentFilter === 'delivery') return v.is_delivery;
+        if (currentFilter === 'halal') return v.is_halal;
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state">В этом разделе пока нет заведений.<br>Скоро мы добавим лучшие места Кисловодска!</div>';
+        return;
+    }
+
+    const popular = filtered.filter(v => v.is_popular);
+    const recommended = filtered.filter(v => v.is_recommended && !v.is_popular);
+    const regular = filtered.filter(v => !v.is_popular && !v.is_recommended);
+
+    let html = '';
+    if (popular.length > 0) {
+        html += `<div class="section-title">🔥 Популярные</div><div class="grid">${popular.map(createCard).join('')}</div>`;
+    }
+    if (recommended.length > 0) {
+        html += `<div class="section-title">⭐ Рекомендуем</div><div class="grid">${recommended.map(createCard).join('')}</div>`;
+    }
+    if (regular.length > 0) {
+        html += `<div class="section-title">Все заведения</div><div class="grid">${regular.map(createCard).join('')}</div>`;
+    }
+    container.innerHTML = html;
+}
+
+function openModal() { document.getElementById('reqModal').classList.add('open'); }
+function closeModal() { document.getElementById('reqModal').classList.remove('open'); }
+
+async function submitVenue(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    formData.append('action', 'submit_venue');
+    const res = await fetch('api.php', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.success) {
+        alert('Спасибо! Ваша заявка отправлена администратору. После проверки заведение появится в каталоге.');
+        e.target.reset();
+        closeModal();
+    }
+}
+
+loadVenues();
+</script>
+</body>
+</html>
