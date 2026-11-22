@@ -74,10 +74,11 @@ header{background:#111827;color:#fff;padding:16px;display:flex;justify-content:s
 </div>
 </div>
 <script>
-const DB_URL='https://firebaseio.com',ADMIN_PASS='Missmira_09';
+const BIN_URL='https://jsonbin.io';
 let venues=[],currentTab='pending';
 function login(){if(document.getElementById('passInput').value.trim()!==ADMIN_PASS)return alert('Неверный пароль!');document.getElementById('loginScreen').style.display='none';document.getElementById('adminPanel').style.display='block';refreshData();}
-async function refreshData(){document.getElementById('listContainer').innerHTML='<div style="text-align:center;padding:40px;color:#6b7280;">Загрузка...</div>';try{const r=await fetch(`${DB_URL}/venues.json`),d=await r.json();venues=d?Object.values(d):[];renderList();}catch(e){alert('Ошибка загрузки базы');}}
+async function refreshData(){document.getElementById('listContainer').innerHTML='<div style="text-align:center;padding:40px;color:#6b7280;">Загрузка...</div>';try{const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}}),d=await r.json();venues=(d.record&&Array.isArray(d.record.venues))?d.record.venues:[];renderList();}catch(e){alert('Ошибка загрузки: '+e.message);}}
+async function syncBin(){const r=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({venues})});if(!r.ok)throw new Error('Ошибка сервера');}
 function switchTab(t){currentTab=t;document.getElementById('tabPending').classList.toggle('active',t==='pending');document.getElementById('tabApproved').classList.toggle('active',t==='approved');closeEditor();renderList();}
 function renderList(){
 const p=venues.filter(v=>v&&v.status==='pending'),a=venues.filter(v=>v&&v.status==='approved');
@@ -98,17 +99,20 @@ document.getElementById('v_popular').checked=!!v.is_popular;document.getElementB
 document.getElementById('editorTitle').innerText='Редактирование заведения';document.getElementById('editorBox').style.display='block';window.scrollTo(0,0);
 }
 function closeEditor(){document.getElementById('editorBox').style.display='none';}
-function compressImage(f){return new Promise(res=>{const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas'),M=800;let w=i.width,h=i.height;if(w>M){h=Math.round(h*(M/w));w=M;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',0.72));};i.src=e.target.result;};r.readAsDataURL(f);});}
+function compressImage(f){return new Promise(res=>{const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas'),M=650;let w=i.width,h=i.height;if(w>M){h=Math.round(h*(M/w));w=M;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',0.65));};i.src=e.target.result;};r.readAsDataURL(f);});}
 async function saveVenue(e){
 e.preventDefault();const b=document.getElementById('saveBtn');b.disabled=true;b.innerText='Сохранение...';
 try{
 let ph=document.getElementById('v_existing_photo').value,fi=document.getElementById('v_photo_file');
 if(fi.files&&fi.files[0])ph=await compressImage(fi.files[0]);
-const id=document.getElementById('v_id').value||String(Date.now());
+const eid=document.getElementById('v_id').value,id=eid||String(Date.now());
 const obj={id,status:'approved',photo:ph,name:document.getElementById('v_name').value.trim(),category:document.getElementById('v_category').value,address:document.getElementById('v_address').value.trim(),phone:document.getElementById('v_phone').value.trim(),whatsapp:document.getElementById('v_whatsapp').value.trim(),max:document.getElementById('v_max').value.trim(),description:document.getElementById('v_description').value.trim(),is_breakfast:document.getElementById('v_breakfast').checked,is_delivery:document.getElementById('v_delivery').checked,is_halal:document.getElementById('v_halal').checked,is_popular:document.getElementById('v_popular').checked,is_recommended:document.getElementById('v_recommended').checked};
-const res=await fetch(`${DB_URL}/venues/${id}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
-if(res.ok){closeEditor();refreshData();}else alert('Ошибка сохранения');
+const idx=venues.findIndex(i=>String(i.id)===String(id));
+if(idx>-1)venues[idx]=obj;else venues.unshift(obj);
+await syncBin();closeEditor();renderList();
 }catch(err){alert('Ошибка: '+err.message);}finally{b.disabled=false;b.innerText='Сохранить и опубликовать';}
 }
-async function deleteVenue(id){if(!confirm('Точно удалить это заведение?'))return;await fetch(`${DB_URL}/venues/${id}.json`,{method:'DELETE'});refreshData();}
-</script></body></html>
+async function deleteVenue(id){if(!confirm('Точно удалить это заведение?'))return;venues=venues.filter(i=>String(i.id)!==String(id));await syncBin();renderList();}
+</script>
+</body>
+</html>
